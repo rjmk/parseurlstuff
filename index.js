@@ -11,7 +11,7 @@
 
 var url = require('url')
 var parse = url.parse
-var Url = url.Url
+var Url
 
 /**
  * Pattern for a simple path case.
@@ -25,7 +25,7 @@ var simplePathRegExp = /^(\/\/?(?!\/)[^\?#\s]*)(\?[^#\s]*)?$/
  */
 
 module.exports = parseurl
-module.exports.original = originalurl
+// module.exports.original = originalurl
 
 /**
  * Parse the `req` url with memoization.
@@ -45,12 +45,13 @@ function parseurl(req) {
 
   var parsed = req._parsedUrl
 
-  if (fresh(url, parsed)) {
+  if (notFresh(url, parsed)) {
     // Return cached URL parse
     return parsed
   }
 
   // Parse the URL
+  
   parsed = fastparse(url)
   parsed._raw = url
 
@@ -65,27 +66,28 @@ function parseurl(req) {
  * @api public
  */
 
-function originalurl(req) {
-  var url = req.originalUrl
-
-  if (typeof url !== 'string') {
-    // Fallback
-    return parseurl(req)
-  }
-
-  var parsed = req._parsedOriginalUrl
-
-  if (fresh(url, parsed)) {
-    // Return cached URL parse
-    return parsed
-  }
-
-  // Parse the URL
-  parsed = fastparse(url)
-  parsed._raw = url
-
-  return req._parsedOriginalUrl = parsed
-};
+// function originalurl(req) {
+//   var url = req.originalUrl
+//
+//   if (typeof url !== 'string') {
+//     // Fallback
+//     return parseurl(req)
+//   }
+//
+//   var parsed = req._parsedOriginalUrl
+//
+//   if (fresh(url, parsed)) {
+//     // Return cached URL parse
+//     return parsed
+//   }
+//
+//   // Parse the URL
+//   parsed = fastparse(url)
+//   parsed._raw = url
+//   console.log(parsed._raw, url);
+//
+//   return req._parsedOriginalUrl = parsed
+// };
 
 /**
  * Parse the `str` url with fast-path short-cut.
@@ -98,29 +100,29 @@ function originalurl(req) {
 function fastparse(str) {
   // Try fast path regexp
   // See: https://github.com/joyent/node/pull/7878
-  var simplePath = typeof str === 'string' && simplePathRegExp.exec(str)
-
-  // Construct simple URL
-  if (simplePath) {
-    var pathname = simplePath[1]
-    var search = simplePath[2] || null
-    var url = Url !== undefined
-      ? new Url()
-      : {}
-    url.path = str
-    url.href = str
-    url.pathname = pathname
-    url.search = search
-    url.query = search && search.substr(1)
-
-    return url
-  }
+  // var simplePath = typeof str === 'string' && simplePathRegExp.exec(str)
+  //
+  // // Construct simple URL
+  // if (simplePath) {
+  //   var pathname = simplePath[1]
+  //   var search = simplePath[2] || null
+  //   var url = Url !== undefined
+  //     ? new Url()
+  //     : {}
+  //   url.path = str
+  //   url.href = str
+  //   url.pathname = pathname
+  //   url.search = search
+  //   url.query = search && search.substr(1)
+  //
+  //   return url
+  // }
 
   return parse(str)
 }
 
 /**
- * Determine if parsed is still fresh for url.
+ * Determine if url is not fresh
  *
  * @param {string} url
  * @param {object} parsedUrl
@@ -128,7 +130,7 @@ function fastparse(str) {
  * @api private
  */
 
-function fresh(url, parsedUrl) {
+function notFresh(url, parsedUrl) {
   return typeof parsedUrl === 'object'
     && parsedUrl !== null
     && (Url === undefined || parsedUrl instanceof Url)
