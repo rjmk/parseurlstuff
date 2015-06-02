@@ -51,7 +51,7 @@ function parseurl(req) {
   }
 
   // Parse the URL
-  
+
   parsed = fastparse(url)
   parsed._raw = url
 
@@ -130,7 +130,7 @@ function fastparse(str) {
  * @api private
  */
 
-function notFresh(url, parsedUrl) {
+function fresh(url, parsedUrl) {
   return typeof parsedUrl === 'object'
     && parsedUrl !== null
     && (Url === undefined || parsedUrl instanceof Url)
